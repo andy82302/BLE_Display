@@ -26,7 +26,6 @@
                 android:inputType="text"
                 android:maxLines="1"
                 android:singleLine="true"
-                android:text="MPFLEB0008"
                 android:textColor="@color/white" />
 
         </com.google.android.material.textfield.TextInputLayout>

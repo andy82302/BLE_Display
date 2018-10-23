@@ -16,7 +16,6 @@
 
 package a860014.mpf.ble_display;
 
-import android.app.Activity;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.content.BroadcastReceiver;
@@ -26,8 +25,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.graphics.Color;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -35,13 +32,9 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ExpandableListView;
-import android.widget.SimpleExpandableListAdapter;
 import android.widget.TextView;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
@@ -53,6 +46,10 @@ import androidx.core.graphics.drawable.DrawableCompat;
 
 import static a860014.mpf.ble_display.SampleGattAttributes.COMMUNICATION;
 import static a860014.mpf.ble_display.SampleGattAttributes.NOTIFY;
+import static a860014.mpf.ble_display.SampleGattAttributes.READ_CHARACTERISTIC_TWO;
+import static a860014.mpf.ble_display.SampleGattAttributes.READ_SERVICE_TWO;
+import static a860014.mpf.ble_display.SampleGattAttributes.WRITE_CHARACTERISTIC_TWO;
+import static a860014.mpf.ble_display.SampleGattAttributes.WRITE_SERVICE_TWO;
 
 /**
  * For a given BLE device, this Activity provides the user interface to connect, display data,
@@ -95,6 +92,16 @@ public class DeviceControlActivity extends AppCompatActivity {
     int[] unlock_BLE_Lock={0x3c,0x00,0x07,0x07,0x08,0xcd,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x3e};
     int[] lock_BLE_Lock={0x3c,0x00,0x07,0x07,0x08,0xce,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x3e};
     int[] read_BLE_Lock={0x3c,0x00,0x07,0x07,0x08,0xcf,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x3e};
+
+    //檢查藍芽第一個位置是否有 沒有就換下一 個位置
+    int BleWriteCheck = 0;
+    int BleReadCheck = 0;
+    private static int State_1_Position = 1;
+    private static int State_2_Position = 2;
+    int WtrieCharacteristics;
+    int WriteService;
+    int ReadCharacteristics;
+    int ReadService;
 
     // Code to manage Service lifecycle.
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -182,7 +189,7 @@ public class DeviceControlActivity extends AppCompatActivity {
         getSupportActionBar().setElevation(R.drawable.toolbar_dropshadow);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        tintMenuIcon(DeviceControlActivity.this,toolbar.getMenu().getItem(0),R.color.colorAccent);
+//        tintMenuIcon(DeviceControlActivity.this,toolbar.getMenu().getItem(0),R.color.colorAccent);
 
         Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
         bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
@@ -227,6 +234,7 @@ public class DeviceControlActivity extends AppCompatActivity {
         cb_unlock.RemoveAnimation();
         cb_lock.RemoveAnimation();
         unbindService(mServiceConnection);
+        mBluetoothLeService.close();
         mBluetoothLeService = null;
     }
 
@@ -281,22 +289,57 @@ public class DeviceControlActivity extends AppCompatActivity {
 
     private void SendByte(int[] send) {
         BluetoothGattCharacteristic characteristic =null;
-        for(int i=0; i<mGattServices.size();i++){
-            if(mGattServices.get(i).getUuid().toString().equals(COMMUNICATION)){
-                for(int j=0; j<mGattServices.get(i).getCharacteristics().size();j++){
-                    if(mGattServices.get(i).getCharacteristics().get(j).getUuid().toString().equals(NOTIFY)){
-                        characteristic=mGattServices.get(i).getCharacteristics().get(j);
+
+        if(mGattServices!=null) {
+            if(BleWriteCheck==0) {
+                for (int i = 0; i < mGattServices.size(); i++) {
+                    if (mGattServices.get(i).getUuid().toString().equals(COMMUNICATION)) {
+                        for (int j = 0; j < mGattServices.get(i).getCharacteristics().size(); j++) {
+                            if (mGattServices.get(i).getCharacteristics().get(j).getUuid().toString().equals(NOTIFY)) {
+                                characteristic = mGattServices.get(i).getCharacteristics().get(j);
+                                if ((characteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE) > 0){
+                                    BleWriteCheck = State_1_Position;
+                                    WriteService = i;
+                                    WtrieCharacteristics = j;
+                                }
+                            }
+                        }
                     }
                 }
-            }
-        }
 
-        final int charaProp = characteristic.getProperties();
-        if ((charaProp & BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE) > 0) {
-            mBluetoothLeService.writeOTABootLoaderCommand(characteristic, send);
-            Log.d(TAG, "嘗試寫入");
-        } else {
-            Log.d(TAG, "SendByte寫入失敗final");
+                if(BleWriteCheck==0){
+                    for (int i = 0; i < mGattServices.size(); i++) {
+                        if (mGattServices.get(i).getUuid().toString().equals(WRITE_CHARACTERISTIC_TWO)) {
+                            for (int j = 0; j < mGattServices.get(i).getCharacteristics().size(); j++) {
+                                if (mGattServices.get(i).getCharacteristics().get(j).getUuid().toString().equals(WRITE_SERVICE_TWO)) {
+                                    characteristic = mGattServices.get(i).getCharacteristics().get(j);
+                                    if ((characteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE) > 0){
+                                        BleWriteCheck = State_1_Position;
+                                        WriteService = i;
+                                        WtrieCharacteristics = j;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }else if(BleWriteCheck==State_1_Position){
+                characteristic = mGattServices.get(WriteService).getCharacteristics().get(WtrieCharacteristics);
+                BleWriteCheck = State_1_Position;
+            }else{
+                characteristic = mGattServices.get(WriteService).getCharacteristics().get(WtrieCharacteristics);
+                BleWriteCheck = State_2_Position;
+            }
+
+            final int charaProp = characteristic.getProperties();
+            if ((charaProp & BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE) > 0) {
+                mBluetoothLeService.writeOTABootLoaderCommand(characteristic, send);
+                Log.i(TAG, "嘗試寫入");
+            } else {
+                Log.i(TAG, "SendByte寫入失敗final");
+            }
+        }else{
+            Log.i(TAG, "mGattServices 為空");
         }
     }
 
@@ -304,28 +347,58 @@ public class DeviceControlActivity extends AppCompatActivity {
     private void StartReceiver(boolean on) {
 
         BluetoothGattCharacteristic characteristic =null;
-        for(int i=0; i<mGattServices.size();i++){
-            if(mGattServices.get(i).getUuid().toString().equals(COMMUNICATION)){
-                for(int j=0; j<mGattServices.get(i).getCharacteristics().size();j++){
-                    if(mGattServices.get(i).getCharacteristics().get(j).getUuid().toString().equals(NOTIFY)){
-                        characteristic=mGattServices.get(i).getCharacteristics().get(j);
+        if(mGattServices!=null) {
+            if(BleReadCheck==0) {
+                for (int i = 0; i < mGattServices.size(); i++) {
+                    if (mGattServices.get(i).getUuid().toString().equals(COMMUNICATION)) {
+                        for (int j = 0; j < mGattServices.get(i).getCharacteristics().size(); j++) {
+                            if (mGattServices.get(i).getCharacteristics().get(j).getUuid().toString().equals(NOTIFY)) {
+                                characteristic = mGattServices.get(i).getCharacteristics().get(j);
+                                BleReadCheck = State_1_Position;
+                                ReadService = i;
+                                ReadCharacteristics = j;
+                            }
+                        }
                     }
                 }
-            }
-        }
 
-        final int charaProp = characteristic.getProperties();
-        final UUID uuid = characteristic.getUuid();
-        Log.i("StartReceiver", "receiver uuid = " + uuid);
-        if ((charaProp & BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
-
-            if (on) {
-                mBluetoothLeService.setCharacteristicNotification(
-                        characteristic, true);
-            } else {
-                mBluetoothLeService.setCharacteristicNotification(
-                        characteristic, false);
+                if(BleReadCheck==0){
+                    for (int i = 0; i < mGattServices.size(); i++) {
+                        if (mGattServices.get(i).getUuid().toString().equals(READ_CHARACTERISTIC_TWO)) {
+                            for (int j = 0; j < mGattServices.get(i).getCharacteristics().size(); j++) {
+                                if (mGattServices.get(i).getCharacteristics().get(j).getUuid().toString().equals(READ_SERVICE_TWO)) {
+                                    characteristic = mGattServices.get(i).getCharacteristics().get(j);
+                                    BleReadCheck = State_2_Position;
+                                    ReadService = i;
+                                    ReadCharacteristics = j;
+                                }
+                            }
+                        }
+                    }
+                }
+            }else if(BleReadCheck==State_1_Position){
+                characteristic = mGattServices.get(ReadService).getCharacteristics().get(ReadCharacteristics);
+                BleReadCheck = State_1_Position;
+            }else{
+                characteristic = mGattServices.get(ReadService).getCharacteristics().get(ReadCharacteristics);
+                BleReadCheck = State_2_Position;
             }
+
+            final int charaProp = characteristic.getProperties();
+            final UUID uuid = characteristic.getUuid();
+            Log.i("StartReceiver", "receiver uuid = " + uuid);
+            if ((charaProp & BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
+
+                if (on) {
+                    mBluetoothLeService.setCharacteristicNotification(
+                            characteristic, true);
+                } else {
+                    mBluetoothLeService.setCharacteristicNotification(
+                            characteristic, false);
+                }
+            }
+        }else{
+            Log.d(TAG, "mGattServices 為空 通知");
         }
 
     }

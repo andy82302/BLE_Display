@@ -21,4 +21,7 @@
 
     <string name="ble_name">Type BLE Name</string>
     <string name="action_sign_in_short">Sign in</string>
+
+    <string name="ble_name_connect">MPFLEA0062</string>
+
 </resources>

@@ -29,6 +29,12 @@ public class SampleGattAttributes {
     public static String COMMUNICATION = "0000ffe0-0000-1000-8000-00805f9b34fb";
     public static String NOTIFY = "0000ffe1-0000-1000-8000-00805f9b34fb";
 
+    public static String WRITE_CHARACTERISTIC_TWO = "0000ffe0-0000-1000-8000-00805f9b34fb";
+    public static String WRITE_SERVICE_TWO = "0000ffe2-0000-1000-8000-00805f9b34fb";
+
+    public static String READ_CHARACTERISTIC_TWO = "0000ffe0-0000-1000-8000-00805f9b34fb";
+    public static String READ_SERVICE_TWO = "0000ffe1-0000-1000-8000-00805f9b34fb";
+
     static {
         // Sample Services.
         attributes.put("0000180d-0000-1000-8000-00805f9b34fb", "Heart Rate Service");
@@ -39,6 +45,12 @@ public class SampleGattAttributes {
 
         attributes.put(COMMUNICATION, "Communication Service");
         attributes.put(NOTIFY, "Notify");
+
+        attributes.put(WRITE_CHARACTERISTIC_TWO, "Write Charavteristic two");
+        attributes.put(WRITE_SERVICE_TWO, "Write Service two");
+
+        attributes.put(READ_CHARACTERISTIC_TWO, "Read Charavteristic two");
+        attributes.put(READ_SERVICE_TWO, "Read Service two");
     }
 
     public static String lookup(String uuid, String defaultName) {

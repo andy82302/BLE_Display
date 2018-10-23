@@ -65,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
         rv.setCircleColor(Color.rgb(19, 157, 227));
         mLiveButton = (LiveButton) findViewById(R.id.LiveButton);
         mEditBLEname = (EditText) findViewById(R.id.EditBLEname);
+        mEditBLEname.setText(getResources().getString(R.string.ble_name_connect));
         mLiveButton.setText(R.string.Scan_start);
         mLiveButton.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
