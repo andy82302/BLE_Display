@@ -1,0 +1,24 @@
+<resources>
+    <string name="app_name">BLE Lock Crontrol</string>
+
+    <string name="Request_GPS">應用程式需要「位置」權限，否則無法正常運作</string>
+    <string name="App_Setting">權限設定</string>
+
+    <string name="Scan_start">開始掃描</string>
+    <string name="Scan_stop">停止掃描</string>
+
+    <string name="Key_ble_name">請輸入藍芽名稱</string>
+
+    <string name="ble_not_supported">不支援BLE</string>
+    <string name="bluetooth_not_supported">不支援BT</string>
+
+    <!-- Menu items -->
+    <string name="menu_connect">Connect</string>
+    <string name="menu_disconnect">Disconnect</string>
+    <string name="menu_scan">掃描</string>
+    <string name="menu_stop">停止</string>
+    <string name="menu_refresh">refresh</string>
+
+    <string name="ble_name">Type BLE Name</string>
+    <string name="action_sign_in_short">Sign in</string>
+</resources>
